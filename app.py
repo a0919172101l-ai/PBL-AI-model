@@ -3,13 +3,13 @@ from openai import OpenAI
 
 
 # ==========================================
-# PAGE SETTINGS
+# PAGE CONFIGURATION
 # ==========================================
 
 st.set_page_config(
-    page_title="Lyle – AI Business & Finance Study Assistant",
-    page_icon="📚",
-    layout="centered"
+    page_title="Lyle – AI Finance Assistant",
+    page_icon="💰",
+    layout="wide"
 )
 
 
@@ -25,19 +25,59 @@ except Exception:
 
 
 # ==========================================
-# TITLE
+# CUSTOM STYLE
 # ==========================================
 
-st.title("📚 Lyle – AI Business & Finance Study Assistant")
+st.markdown(
+    """
+    <style>
 
-st.write(
-    "An AI study assistant designed to help high-school students "
-    "understand business and finance concepts."
+    .main-title {
+        text-align: center;
+        font-size: 42px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        text-align: center;
+        font-size: 18px;
+        color: #666666;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid #dddddd;
+        margin-bottom: 15px;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ==========================================
+# HEADER
+# ==========================================
+
+st.markdown(
+    '<div class="main-title">💰 Lyle – AI Finance Assistant</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">'
+    'An AI-powered finance learning and analysis assistant for students.'
+    '</div>',
+    unsafe_allow_html=True
 )
 
 st.info(
-    "This AI focuses on Business & Finance learning. "
-    "It is not a general-purpose chatbot."
+    "🎯 Lyle focuses on Finance, Investing, Economics, "
+    "and Financial Literacy — not general-purpose questions."
 )
 
 
@@ -47,25 +87,25 @@ st.info(
 
 with st.sidebar:
 
-    st.header("📖 Study Topics")
+    st.header("📚 Finance Tools")
 
-    topic = st.selectbox(
-        "Choose a topic",
+    mode = st.selectbox(
+        "Choose a Finance Mode",
         [
-            "General Business",
-            "Economics",
-            "Finance",
-            "Business Ethics",
-            "PESTEL Analysis",
-            "Investment Basics",
-            "Business Strategy"
+            "📖 Finance Learning",
+            "📊 Stock Analysis",
+            "📈 Investment Analysis",
+            "💰 Personal Finance",
+            "🧮 Financial Calculations",
+            "⚖️ Risk Analysis",
+            "💼 Company Analysis"
         ]
     )
 
     difficulty = st.selectbox(
         "Explanation Level",
         [
-            "Simple",
+            "Beginner",
             "Intermediate",
             "Advanced"
         ]
@@ -73,100 +113,264 @@ with st.sidebar:
 
     st.divider()
 
-    st.write("### 🎯 What Lyle can do")
+    st.subheader("💡 Topics")
 
-    st.write("• Explain business concepts")
-    st.write("• Give real-world examples")
-    st.write("• Analyze business problems")
-    st.write("• Create practice questions")
-    st.write("• Explain finance concepts")
-    st.write("• Help students understand mistakes")
+    st.write("📈 Stocks & ETFs")
+    st.write("📊 Financial Ratios")
+    st.write("💰 Personal Finance")
+    st.write("📉 Risk & Return")
+    st.write("🏢 Company Analysis")
+    st.write("🌎 Economics")
+    st.write("🧮 Compound Interest")
+    st.write("💼 Investment Strategy")
 
     st.divider()
 
-    if st.button("🗑️ Clear Conversation"):
+    if st.button("🗑️ Clear Conversation", use_container_width=True):
+
         st.session_state.messages = []
+
         st.rerun()
 
 
 # ==========================================
-# AI INSTRUCTIONS
+# AI SYSTEM PROMPT
 # ==========================================
 
 SYSTEM_PROMPT = f"""
-You are Lyle, an AI Business and Finance Study Assistant.
+You are Lyle, an AI Finance Learning and Analysis Assistant.
 
-Your specific purpose is to help high-school students learn
-Business, Economics, and Finance.
+Your specific purpose is to help students understand finance,
+investing, economics, and financial literacy.
 
 You are NOT a general-purpose chatbot.
 
-Main areas you should help with:
+The user's selected mode is:
 
-1. Business
-2. Economics
-3. Finance
-4. Business Ethics
-5. PESTEL Analysis
-6. Investment Basics
-7. Business Strategy
+{mode}
 
-The student's selected topic is:
-{topic}
+The user's preferred difficulty level is:
 
-The student's preferred difficulty level is:
 {difficulty}
 
-IMPORTANT RULES:
+==================================================
+MAIN AREAS
+==================================================
 
-- Stay mainly within Business, Economics, and Finance education.
-- If the user asks something unrelated, politely explain that
-  you are designed for Business and Finance learning.
-- Explain difficult concepts using simple language when appropriate.
-- Give real-world business examples.
-- Break difficult problems into steps.
-- When useful, use tables or bullet points.
-- Do not simply give an answer to academic questions.
-  Explain the reasoning so the student can learn.
-- For calculations, show the important steps.
-- For investment questions, provide educational information,
-  not personalized financial advice.
-- For current financial information, explain that information
-  may change over time.
-- Do not invent facts or sources.
-- If you are uncertain, say that you are uncertain.
+You should mainly help with:
 
-Your goal is to help the student UNDERSTAND business and finance,
-not simply provide answers.
+1. Financial literacy
+2. Stocks
+3. ETFs
+4. Company analysis
+5. Financial ratios
+6. Investment concepts
+7. Risk and return
+8. Compound interest
+9. Personal finance
+10. Economics
+11. Portfolio diversification
+12. Business finance
+
+==================================================
+FINANCIAL RATIO EDUCATION
+==================================================
+
+You can explain:
+
+- P/E ratio
+- Forward P/E
+- PEG ratio
+- ROE
+- ROA
+- Profit margin
+- Debt-to-equity ratio
+- Current ratio
+- Quick ratio
+- EPS
+- Dividend yield
+- Free cash flow
+
+When explaining a financial ratio:
+
+1. Define it.
+2. Explain what it measures.
+3. Explain why investors may care about it.
+4. Give a simple example.
+5. Explain its limitations.
+
+Do NOT assume that a higher or lower number is always better.
+
+==================================================
+STOCK AND COMPANY ANALYSIS
+==================================================
+
+When analyzing a company, consider:
+
+- Revenue
+- Profit
+- Profit margin
+- EPS
+- P/E
+- Growth
+- ROE
+- ROA
+- Debt
+- Cash flow
+- Competitive advantages
+- Industry conditions
+- Risks
+
+Organize analysis into:
+
+1. Company overview
+2. Financial performance
+3. Valuation
+4. Growth
+5. Risks
+6. Strengths
+7. Weaknesses
+8. Overall educational conclusion
+
+Do not guarantee future stock performance.
+
+==================================================
+INVESTMENT ANALYSIS
+==================================================
+
+When discussing an investment:
+
+Explain:
+
+- Potential return
+- Potential risks
+- Volatility
+- Diversification
+- Time horizon
+- Risk tolerance
+
+Never tell the user that an investment is guaranteed to make money.
+
+Use phrases such as:
+
+"From an educational perspective..."
+
+"This may suggest..."
+
+"One possible risk is..."
+
+==================================================
+PERSONAL FINANCE
+==================================================
+
+You can help explain:
+
+- Budgeting
+- Saving
+- Investing
+- Emergency funds
+- Compound interest
+- Long-term investing
+- Diversification
+
+Focus on financial education rather than personalized financial advice.
+
+==================================================
+CALCULATIONS
+==================================================
+
+For financial calculations:
+
+1. Show the formula.
+2. Explain the variables.
+3. Calculate step by step.
+4. Explain the result in simple language.
+
+==================================================
+IMPORTANT SAFETY RULES
+==================================================
+
+You are an educational finance assistant.
+
+Do not promise investment returns.
+
+Do not claim that a stock will definitely rise or fall.
+
+Do not present educational information as professional
+financial advice.
+
+If the user asks for a specific investment decision,
+explain both potential benefits and risks.
+
+For current stock prices or financial news, explain that
+financial information can change over time and should be
+verified using reliable current sources.
+
+==================================================
+OUT-OF-SCOPE QUESTIONS
+==================================================
+
+If the user asks about something completely unrelated to
+finance, politely say:
+
+"I am Lyle, a finance-focused AI assistant. I am designed
+to help with finance, investing, economics, and financial
+literacy questions."
+
+Then redirect the user toward a finance-related question.
+
+==================================================
+MAIN GOAL
+==================================================
+
+Your goal is not simply to give answers.
+
+Your goal is to help students DEVELOP FINANCIAL THINKING.
+
+Explain:
+
+WHY something happens,
+HOW to analyze it,
+and WHAT limitations the analysis has.
 """
 
 
 # ==========================================
-# CHAT HISTORY
+# INITIALIZE CHAT
 # ==========================================
 
 if "messages" not in st.session_state:
+
     st.session_state.messages = []
 
 
 # ==========================================
-# EXAMPLE QUESTIONS
+# WELCOME SCREEN
 # ==========================================
 
 if len(st.session_state.messages) == 0:
 
-    st.subheader("💡 Try asking:")
+    st.subheader("👋 Welcome to Lyle")
+
+    st.write(
+        "Lyle helps students learn finance and understand "
+        "investment concepts through AI-powered explanations."
+    )
+
+    st.markdown("### 💡 Try asking:")
 
     examples = [
-        "What is PESTEL analysis?",
-        "Explain opportunity cost with a business example.",
-        "What is the difference between revenue and profit?",
-        "Why is business ethics important?",
-        "How does inflation affect businesses?",
-        "Explain P/E ratio in simple English."
+        "What does the P/E ratio tell investors?",
+        "Explain ROE in simple English.",
+        "What is the difference between an ETF and a stock?",
+        "How does compound interest work?",
+        "Why is diversification important?",
+        "How can I analyze a company's financial health?",
+        "What are the risks of investing in technology stocks?"
     ]
 
     for example in examples:
+
         st.write("• " + example)
 
 
@@ -177,6 +381,7 @@ if len(st.session_state.messages) == 0:
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
+
         st.markdown(message["content"])
 
 
@@ -185,7 +390,7 @@ for message in st.session_state.messages:
 # ==========================================
 
 user_input = st.chat_input(
-    "Ask Lyle a Business or Finance question..."
+    "Ask Lyle a finance question..."
 )
 
 
@@ -218,6 +423,7 @@ if user_input:
     # Display user message
 
     with st.chat_message("user"):
+
         st.markdown(user_input)
 
 
@@ -235,18 +441,18 @@ if user_input:
     )
 
 
-    # Generate answer
+    # Generate AI response
 
     with st.chat_message("assistant"):
 
-        with st.spinner("Lyle is thinking..."):
+        with st.spinner("Lyle is analyzing..."):
 
             try:
 
                 response = client.chat.completions.create(
                     model="gpt-5-mini",
                     messages=messages,
-                    temperature=0.3
+                    temperature=0.2
                 )
 
                 answer = response.choices[0].message.content
