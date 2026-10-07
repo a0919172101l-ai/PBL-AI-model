@@ -1,417 +1,267 @@
 import streamlit as st
-from openai import OpenAI
+from groq import Groq
 
-
-# ==========================================
-# PAGE CONFIGURATION
-# ==========================================
+# =========================================================
+# PAGE CONFIG
+# =========================================================
 
 st.set_page_config(
-    page_title="Lyle – AI Finance Assistant",
-    page_icon="💰",
-    layout="wide"
+    page_title="Lyle – Business Problem Solver",
+    page_icon="💼",
+    layout="centered"
 )
 
-
-# ==========================================
-# OPENAI CONNECTION
-# ==========================================
-
-try:
-    api_key = st.secrets["OPENAI_API_KEY"]
-    client = OpenAI(api_key=api_key)
-except Exception:
-    client = None
-
-
-# ==========================================
+# =========================================================
 # CUSTOM STYLE
-# ==========================================
+# =========================================================
 
 st.markdown(
     """
     <style>
-
     .main-title {
-        text-align: center;
         font-size: 42px;
-        font-weight: bold;
+        font-weight: 700;
         margin-bottom: 5px;
     }
 
     .subtitle {
-        text-align: center;
         font-size: 18px;
         color: #666666;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
     }
 
-    .card {
-        padding: 20px;
-        border-radius: 15px;
-        border: 1px solid #dddddd;
-        margin-bottom: 15px;
+    .info-box {
+        padding: 15px;
+        border-radius: 10px;
+        background-color: #f5f7fa;
+        margin-bottom: 20px;
     }
-
     </style>
     """,
     unsafe_allow_html=True
 )
 
-
-# ==========================================
-# HEADER
-# ==========================================
+# =========================================================
+# TITLE
+# =========================================================
 
 st.markdown(
-    '<div class="main-title">💰 Lyle – AI Finance Assistant</div>',
+    '<div class="main-title">💼 Lyle – Business Problem Solver</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
     '<div class="subtitle">'
-    'An AI-powered finance learning and analysis assistant for students.'
+    'An AI assistant designed to analyze business problems and provide practical recommendations.'
     '</div>',
     unsafe_allow_html=True
 )
 
-st.info(
-    "🎯 Lyle focuses on Finance, Investing, Economics, "
-    "and Financial Literacy — not general-purpose questions."
-)
+# =========================================================
+# PURPOSE
+# =========================================================
 
+with st.expander("🎯 What does Lyle do?"):
+    st.write(
+        """
+        Lyle is a Business AI assistant designed to help students and beginner
+        business users understand and analyze business problems.
 
-# ==========================================
-# SIDEBAR
-# ==========================================
+        It focuses on:
+        • Marketing
+        • Finance
+        • Management
+        • Operations
+        • Business Strategy
+        • Customer Problems
+        • Business Decision-Making
 
-with st.sidebar:
-
-    st.header("📚 Finance Tools")
-
-    mode = st.selectbox(
-        "Choose a Finance Mode",
-        [
-            "📖 Finance Learning",
-            "📊 Stock Analysis",
-            "📈 Investment Analysis",
-            "💰 Personal Finance",
-            "🧮 Financial Calculations",
-            "⚖️ Risk Analysis",
-            "💼 Company Analysis"
-        ]
+        Instead of simply giving a short answer, Lyle analyzes the problem,
+        identifies possible causes, and provides practical recommendations.
+        """
     )
 
-    difficulty = st.selectbox(
-        "Explanation Level",
-        [
-            "Beginner",
-            "Intermediate",
-            "Advanced"
-        ]
+# =========================================================
+# API KEY
+# =========================================================
+
+try:
+    api_key = st.secrets["GROQ_API_KEY"]
+except Exception:
+    st.error(
+        "⚠️ GROQ_API_KEY is missing. "
+        "Please add your Groq API key to Streamlit Secrets."
     )
+    st.stop()
 
-    st.divider()
+# =========================================================
+# GROQ CLIENT
+# =========================================================
 
-    st.subheader("💡 Topics")
+try:
+    client = Groq(api_key=api_key)
+except Exception:
+    st.error(
+        "⚠️ The AI service could not be initialized. "
+        "Please check your GROQ_API_KEY."
+    )
+    st.stop()
 
-    st.write("📈 Stocks & ETFs")
-    st.write("📊 Financial Ratios")
-    st.write("💰 Personal Finance")
-    st.write("📉 Risk & Return")
-    st.write("🏢 Company Analysis")
-    st.write("🌎 Economics")
-    st.write("🧮 Compound Interest")
-    st.write("💼 Investment Strategy")
+# =========================================================
+# MODEL
+# =========================================================
 
-    st.divider()
+MODEL_NAME = "openai/gpt-oss-120b"
 
-    if st.button("🗑️ Clear Conversation", use_container_width=True):
+# =========================================================
+# SYSTEM PROMPT
+# =========================================================
 
-        st.session_state.messages = []
+SYSTEM_PROMPT = """
+You are Lyle, a Business Problem Solver.
 
-        st.rerun()
-
-
-# ==========================================
-# AI SYSTEM PROMPT
-# ==========================================
-
-SYSTEM_PROMPT = f"""
-You are Lyle, an AI Finance Learning and Analysis Assistant.
-
-Your specific purpose is to help students understand finance,
-investing, economics, and financial literacy.
+Your purpose is to help students and beginner business users
+understand and analyze BUSINESS problems.
 
 You are NOT a general-purpose chatbot.
 
-The user's selected mode is:
+Your main areas are:
+- Marketing
+- Finance
+- Management
+- Operations
+- Business strategy
+- Customer problems
+- Business decision-making
+- Entrepreneurship
+- Business ethics
 
-{mode}
+IMPORTANT RULES:
 
-The user's preferred difficulty level is:
+1. Focus primarily on business-related questions.
 
-{difficulty}
+2. If the user's question is unrelated to business,
+politely explain that Lyle is designed for business problems
+and ask the user to connect the question to a business situation.
 
-==================================================
-MAIN AREAS
-==================================================
+3. Do not invent statistics, company financial data, market data,
+or research results.
 
-You should mainly help with:
+4. If the user does not provide enough information,
+clearly state what information is missing.
 
-1. Financial literacy
-2. Stocks
-3. ETFs
-4. Company analysis
-5. Financial ratios
-6. Investment concepts
-7. Risk and return
-8. Compound interest
-9. Personal finance
-10. Economics
-11. Portfolio diversification
-12. Business finance
+5. Explain business concepts in clear and student-friendly language.
 
-==================================================
-FINANCIAL RATIO EDUCATION
-==================================================
+6. Do not pretend that you have real-time company or market data.
 
-You can explain:
+7. When appropriate, use simple business frameworks such as:
+   - SWOT
+   - PESTEL
+   - 4Ps
+   - Porter's Five Forces
+   - Cost-benefit analysis
+   - Risk analysis
+   - Customer analysis
 
-- P/E ratio
-- Forward P/E
-- PEG ratio
-- ROE
-- ROA
-- Profit margin
-- Debt-to-equity ratio
-- Current ratio
-- Quick ratio
-- EPS
-- Dividend yield
-- Free cash flow
+8. For a business problem, structure the answer using:
 
-When explaining a financial ratio:
+   Problem
+   Possible Causes
+   Business Analysis
+   Possible Solutions
+   Risks
+   Recommendation
 
-1. Define it.
-2. Explain what it measures.
-3. Explain why investors may care about it.
-4. Give a simple example.
-5. Explain its limitations.
+9. Give practical recommendations instead of only defining concepts.
 
-Do NOT assume that a higher or lower number is always better.
+10. If the user asks about investing or financial decisions,
+provide educational analysis only and clearly explain that
+the response is not professional financial advice.
 
-==================================================
-STOCK AND COMPANY ANALYSIS
-==================================================
+11. Keep answers organized and easy for a high-school student
+to understand.
 
-When analyzing a company, consider:
-
-- Revenue
-- Profit
-- Profit margin
-- EPS
-- P/E
-- Growth
-- ROE
-- ROA
-- Debt
-- Cash flow
-- Competitive advantages
-- Industry conditions
-- Risks
-
-Organize analysis into:
-
-1. Company overview
-2. Financial performance
-3. Valuation
-4. Growth
-5. Risks
-6. Strengths
-7. Weaknesses
-8. Overall educational conclusion
-
-Do not guarantee future stock performance.
-
-==================================================
-INVESTMENT ANALYSIS
-==================================================
-
-When discussing an investment:
-
-Explain:
-
-- Potential return
-- Potential risks
-- Volatility
-- Diversification
-- Time horizon
-- Risk tolerance
-
-Never tell the user that an investment is guaranteed to make money.
-
-Use phrases such as:
-
-"From an educational perspective..."
-
-"This may suggest..."
-
-"One possible risk is..."
-
-==================================================
-PERSONAL FINANCE
-==================================================
-
-You can help explain:
-
-- Budgeting
-- Saving
-- Investing
-- Emergency funds
-- Compound interest
-- Long-term investing
-- Diversification
-
-Focus on financial education rather than personalized financial advice.
-
-==================================================
-CALCULATIONS
-==================================================
-
-For financial calculations:
-
-1. Show the formula.
-2. Explain the variables.
-3. Calculate step by step.
-4. Explain the result in simple language.
-
-==================================================
-IMPORTANT SAFETY RULES
-==================================================
-
-You are an educational finance assistant.
-
-Do not promise investment returns.
-
-Do not claim that a stock will definitely rise or fall.
-
-Do not present educational information as professional
-financial advice.
-
-If the user asks for a specific investment decision,
-explain both potential benefits and risks.
-
-For current stock prices or financial news, explain that
-financial information can change over time and should be
-verified using reliable current sources.
-
-==================================================
-OUT-OF-SCOPE QUESTIONS
-==================================================
-
-If the user asks about something completely unrelated to
-finance, politely say:
-
-"I am Lyle, a finance-focused AI assistant. I am designed
-to help with finance, investing, economics, and financial
-literacy questions."
-
-Then redirect the user toward a finance-related question.
-
-==================================================
-MAIN GOAL
-==================================================
-
-Your goal is not simply to give answers.
-
-Your goal is to help students DEVELOP FINANCIAL THINKING.
-
-Explain:
-
-WHY something happens,
-HOW to analyze it,
-and WHAT limitations the analysis has.
+12. You may answer in English or Chinese depending on the user's language.
 """
 
-
-# ==========================================
-# INITIALIZE CHAT
-# ==========================================
+# =========================================================
+# SESSION STATE
+# =========================================================
 
 if "messages" not in st.session_state:
-
     st.session_state.messages = []
 
+# =========================================================
+# EXAMPLE QUESTIONS
+# =========================================================
 
-# ==========================================
-# WELCOME SCREEN
-# ==========================================
+st.subheader("💡 Try a Business Question")
 
-if len(st.session_state.messages) == 0:
+examples = [
+    "Why are customers buying less from a company?",
+    "How can a small business attract more customers?",
+    "Use SWOT analysis to analyze Starbucks.",
+    "How can a company reduce operating costs?",
+    "Why might a company's sales decrease?",
+    "How can a business improve customer satisfaction?"
+]
 
-    st.subheader("👋 Welcome to Lyle")
+cols = st.columns(2)
 
-    st.write(
-        "Lyle helps students learn finance and understand "
-        "investment concepts through AI-powered explanations."
-    )
+for i, example in enumerate(examples):
+    if cols[i % 2].button(example, key=f"example_{i}"):
+        st.session_state.pending_question = example
 
-    st.markdown("### 💡 Try asking:")
+# =========================================================
+# CLEAR CHAT
+# =========================================================
 
-    examples = [
-        "What does the P/E ratio tell investors?",
-        "Explain ROE in simple English.",
-        "What is the difference between an ETF and a stock?",
-        "How does compound interest work?",
-        "Why is diversification important?",
-        "How can I analyze a company's financial health?",
-        "What are the risks of investing in technology stocks?"
-    ]
+if st.button("🗑️ Clear Conversation"):
+    st.session_state.messages = []
+    st.rerun()
 
-    for example in examples:
-
-        st.write("• " + example)
-
-
-# ==========================================
+# =========================================================
 # DISPLAY CHAT HISTORY
-# ==========================================
+# =========================================================
 
 for message in st.session_state.messages:
-
     with st.chat_message(message["role"]):
-
         st.markdown(message["content"])
 
-
-# ==========================================
+# =========================================================
 # USER INPUT
-# ==========================================
+# =========================================================
+
+pending_question = st.session_state.pop("pending_question", None)
 
 user_input = st.chat_input(
-    "Ask Lyle a finance question..."
+    "Describe your business problem..."
 )
 
+if pending_question:
+    user_input = pending_question
 
-# ==========================================
+# =========================================================
 # AI RESPONSE
-# ==========================================
+# =========================================================
 
 if user_input:
 
-    if client is None:
+    user_input = user_input.strip()
 
-        st.error(
-            "OpenAI API key is missing. "
-            "Please add OPENAI_API_KEY to Streamlit Secrets."
-        )
-
+    if not user_input:
+        st.warning("Please enter a business question.")
         st.stop()
 
+    # Prevent extremely long input
+    if len(user_input) > 4000:
+        st.warning(
+            "Your question is too long. "
+            "Please keep it under 4,000 characters."
+        )
+        st.stop()
 
-    # Save user message
-
+    # Add user message
     st.session_state.messages.append(
         {
             "role": "user",
@@ -419,60 +269,96 @@ if user_input:
         }
     )
 
-
-    # Display user message
-
     with st.chat_message("user"):
-
         st.markdown(user_input)
 
-
-    # Prepare conversation
-
-    messages = [
+    # Prepare messages
+    messages_for_api = [
         {
             "role": "system",
             "content": SYSTEM_PROMPT
         }
     ]
 
-    messages.extend(
-        st.session_state.messages
+    # Keep recent conversation
+    messages_for_api.extend(
+        st.session_state.messages[-10:]
     )
 
-
-    # Generate AI response
-
+    # Generate response
     with st.chat_message("assistant"):
 
-        with st.spinner("Lyle is analyzing..."):
+        response_placeholder = st.empty()
 
-            try:
+        try:
 
-                response = client.chat.completions.create(
-                    model="gpt-5-mini",
-                    messages=messages,
-                    temperature=0.2
+            completion = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages_for_api,
+                temperature=0.4,
+                max_completion_tokens=1800
+            )
+
+            answer = completion.choices[0].message.content
+
+            if not answer:
+                answer = (
+                    "I could not generate an answer. "
+                    "Please try asking your business question again."
                 )
 
-                answer = response.choices[0].message.content
+            response_placeholder.markdown(answer)
 
-                st.markdown(answer)
+            # Save assistant response
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": answer
+                }
+            )
 
+        except Exception as e:
 
-                # Save response
+            error_text = str(e).lower()
 
-                st.session_state.messages.append(
-                    {
-                        "role": "assistant",
-                        "content": answer
-                    }
+            if "401" in error_text or "authentication" in error_text:
+                error_message = (
+                    "🔐 **API authentication error**\n\n"
+                    "The Groq API key is invalid or has not been configured correctly.\n\n"
+                    "Please check `GROQ_API_KEY` in Streamlit Secrets."
                 )
 
-            except Exception as e:
-
-                st.error(
-                    "Lyle could not generate a response."
+            elif "429" in error_text or "rate limit" in error_text:
+                error_message = (
+                    "⏳ **API rate limit reached**\n\n"
+                    "The AI service is temporarily limiting requests. "
+                    "Please wait a moment and try again."
                 )
 
-                st.caption(str(e))
+            elif "model" in error_text:
+                error_message = (
+                    "⚠️ **Model error**\n\n"
+                    "The selected AI model may not be available. "
+                    "Please check the model configuration."
+                )
+
+            else:
+                error_message = (
+                    "⚠️ **The AI could not generate a response.**\n\n"
+                    "Please try again. If the problem continues, "
+                    "check the Groq API key and Streamlit Secrets."
+                )
+
+            response_placeholder.error(error_message)
+
+# =========================================================
+# FOOTER
+# =========================================================
+
+st.divider()
+
+st.caption(
+    "Lyle is a student business-analysis prototype. "
+    "It uses an AI model to provide educational business analysis "
+    "and may require additional real-world data for accurate decisions."
+)
